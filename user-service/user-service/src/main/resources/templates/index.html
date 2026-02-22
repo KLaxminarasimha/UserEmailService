@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            width: 380px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 6px rgba(78,115,223,0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4e73df, #224abe);
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+        }
+
+        #result {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: bold;
+            color: #444;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>User Registration</h2>
+
+    <input id="firstname" placeholder="First Name">
+    <input id="lastname" placeholder="Last Name">
+    <input id="phonenumber" placeholder="Phone Number">
+    <input id="email" placeholder="Email">
+    <input id="city" placeholder="City">
+    <input id="state" placeholder="State">
+    <input id="pincode" placeholder="Pincode">
+
+    <button onclick="saveUser()">Save User</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+
+    function saveUser() {
+
+        const user = {
+            firstname: document.getElementById("firstname").value,
+            lastname: document.getElementById("lastname").value,
+            phonenumber: document.getElementById("phonenumber").value,
+            email: document.getElementById("email").value,
+            city: document.getElementById("city").value,
+            state: document.getElementById("state").value,
+            pincode: document.getElementById("pincode").value
+        };
+
+        document.getElementById("result").innerText = "Saving user...";
+
+        fetch("http://localhost:8081/users", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(user)
+        })
+        .then(res => res.json())
+        .then(savedUser => {
+
+            if (!savedUser.id) {
+                throw "User not saved";
+            }
+
+            document.getElementById("result").innerText =
+                "User saved. Sending email...";
+
+            return fetch("http://localhost:8082/email/" + savedUser.id, {
+                method: "POST"
+            });
+        })
+        .then(res => res.json())
+        .then(emailResponse => {
+
+            document.getElementById("result").innerText =
+                emailResponse.status + " : " + emailResponse.message;
+        })
+        .catch(err => {
+            document.getElementById("result").innerText =
+                "ERROR: " + err;
+        });
+    }
+
+</script>
+
+</body>
+</html>
