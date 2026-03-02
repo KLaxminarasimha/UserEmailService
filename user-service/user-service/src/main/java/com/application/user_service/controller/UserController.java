@@ -1,6 +1,7 @@
 package com.application.user_service.controller;
 
 
+import com.application.user_service.dto.ResponseDTO;
 import com.application.user_service.dto.UserRequestDTO;
 import com.application.user_service.dto.UserResponseDTO;
 import com.application.user_service.service.UserService;
@@ -21,6 +22,10 @@ public class UserController {
     @GetMapping("/{id}")
     public UserResponseDTO getById(@PathVariable Long id){
         return service.getById(id);
+    }
+    @PostMapping("/{id}")
+    public ResponseDTO sendEmail(@PathVariable Long id) {
+        return service.sendEmail(id);
     }
 
 }

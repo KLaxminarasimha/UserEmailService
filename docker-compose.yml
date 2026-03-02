@@ -1,0 +1,46 @@
+services:
+
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: usersystem
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  consul:
+    image: hashicorp/consul:1.15
+    container_name: consul
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"
+
+  user-service:
+    build: ./user-service/user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-db
+      - consul
+
+  email-service:
+    build: ./email-service/email-service
+    container_name: email-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-db
+      - consul
+
+  api-gateway:
+    build: ./api-gateway/api-gateway
+    container_name: api-gateway
+    ports:
+      - "9090:9090"
+    depends_on:
+      - user-service
+      - email-service
+      - consul

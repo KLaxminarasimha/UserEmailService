@@ -1,0 +1,27 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+
+        - id: email-service
+          uri: lb://email-service
+          predicates:
+            - Path=/email/**

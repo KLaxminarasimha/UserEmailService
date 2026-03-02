@@ -1,18 +1,26 @@
 package com.application.user_service.service;
 
+import com.application.user_service.dto.ResponseDTO;
 import com.application.user_service.dto.UserRequestDTO;
 import com.application.user_service.dto.UserResponseDTO;
 import com.application.user_service.entity.User;
 import com.application.user_service.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
+
     @Autowired
     private UserRepository repo;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Override
     public UserResponseDTO addUser(UserRequestDTO dto) {
+
         User user = new User();
         user.setFirstname(dto.getFirstname());
         user.setLastname(dto.getLastname());
@@ -21,7 +29,22 @@ public class UserServiceImpl implements UserService{
         user.setCity(dto.getCity());
         user.setState(dto.getState());
         user.setPincode(dto.getPincode());
-        User saved=repo.save(user);
+
+        User saved = repo.save(user);
+
+        try {
+            ResponseDTO response = restTemplate.postForObject(
+                    "http://email-service/email/" + saved.getId(),
+                    null,
+                    ResponseDTO.class
+            );
+
+            System.out.println("Email Service Response: " + response);
+
+        } catch (Exception e) {
+            System.out.println("Email call failed: " + e.getMessage());
+        }
+
         return new UserResponseDTO(
                 saved.getId(),
                 saved.getFirstname(),
@@ -31,14 +54,14 @@ public class UserServiceImpl implements UserService{
                 saved.getCity(),
                 saved.getState(),
                 saved.getPincode()
-
         );
-
     }
 
     @Override
     public UserResponseDTO getById(Long id) {
-        User saved=repo.findById(id).orElseThrow();
+
+        User saved = repo.findById(id).orElseThrow();
+
         return new UserResponseDTO(
                 saved.getId(),
                 saved.getFirstname(),
@@ -48,7 +71,22 @@ public class UserServiceImpl implements UserService{
                 saved.getCity(),
                 saved.getState(),
                 saved.getPincode()
-
         );
+    }
+
+    // ✅ MANUAL EMAIL TRIGGER
+    @Override
+    public ResponseDTO sendEmail(Long id) {
+
+        try {
+            return restTemplate.postForObject(
+                    "http://email-service/email/" + id,
+                    null,
+                    ResponseDTO.class
+            );
+
+        } catch (Exception e) {
+            return new ResponseDTO("FAILED", "Email service error");
+        }
     }
 }
